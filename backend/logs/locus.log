@@ -1,0 +1,12 @@
+[2026-10-20 20:42:45] INFO     [locus] Created new UserProfile for user 'todd' (id=1)
+[2026-10-20 20:42:46] INFO     [locus] Created new UserProfile for user 'daughter' (id=2)
+[2026-10-20 20:42:46] INFO     [locus] Created Tag 'The House I Grew Up In' (id=5fe89527-46b6-4140-ade8-2f53fa9d6df5) at (38.89770, -77.03650) by user 'todd'
+[2026-10-20 20:42:46] INFO     [locus] Created Tag 'Where I Learned to Ride a Bike' (id=3b4d7345-025f-4803-a976-edbc8ab50ca0) at (38.88950, -77.03530) by user 'todd'
+[2026-10-20 20:42:46] INFO     [locus] Created Tag 'Our Favorite Saturday Morning Bakery' (id=cd2c2bd5-041f-4319-a9a3-3ea6acf30b3a) at (38.89510, -77.03640) by user 'todd'
+[2026-10-20 20:42:46] INFO     [locus] GEOFENCE UNLOCK: User 'daughter' unlocked Tag 'Our Favorite Saturday Morning Bakery' from 8.4m away (radius=60m)
+[2026-10-20 20:42:49] INFO     [locus] Created new UserProfile for user 'dad' (id=1)
+[2026-10-20 20:42:49] INFO     [locus] Created new UserProfile for user 'daughter' (id=2)
+[2026-10-20 20:42:49] INFO     [locus] Created Tag 'Childhood Home' (id=626f18c5-3422-4e7a-a71c-e266692e2597) at (40.71280, -74.00600) by user 'dad'
+[2026-10-20 20:42:49] WARNING  [locus] GEOFENCE DENIED: User 'daughter' attempted to unlock 'Childhood Home' from 1112.0m away (required <= 50m)
+[2026-10-20 20:42:49] WARNING  [django.request] Forbidden: /api/tags/626f18c5-3422-4e7a-a71c-e266692e2597/unlock/
+[2026-10-20 20:42:49] INFO     [locus] GEOFENCE UNLOCK: User 'daughter' unlocked Tag 'Childhood Home' from 5.6m away (radius=50m)

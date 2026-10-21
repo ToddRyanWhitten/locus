@@ -1,0 +1,19 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div style="margin-bottom: 24px; padding: 16px 20px; background: linear-gradient(135deg, #1e293b, #0f172a); color: #f8fafc; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+  <h2 style="margin: 0 0 8px 0; font-size: 18px; color: #38bdf8;">🛠️ Locus System Operations & Diagnostics</h2>
+  <p style="margin: 0 0 14px 0; color: #cbd5e1; font-size: 13px;">
+    Quick access to user storage quota management, media analytics, and real-time geofence/API application logs.
+  </p>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="{% url 'admin-storage-dashboard' %}" style="background: #0284c7; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px;">
+      💾 Storage Quotas & Media Analytics
+    </a>
+    <a href="{% url 'admin-log-viewer' %}" style="background: #334155; color: #f8fafc; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px; border: 1px solid #475569;">
+      📜 Live Application & Geofence Log Viewer
+    </a>
+  </div>
+</div>
+{{ block.super }}
+{% endblock %}

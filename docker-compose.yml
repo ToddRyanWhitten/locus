@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: locus-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-locus}
+      POSTGRES_USER: ${POSTGRES_USER:-locus_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-locus_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - locus_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-locus_user} -d ${POSTGRES_DB:-locus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: locus-backend
+    restart: unless-stopped
+    env_file:
+      - .env.example
+    environment:
+      USE_POSTGIS: "True"
+      POSTGRES_HOST: db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - locus_media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  locus_pgdata:
+  locus_media:

@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="margin-bottom: 16px;">
+  <a href="{% url 'admin:index' %}" style="text-decoration: none; font-weight: 600;">← Back to Admin Home</a>
+  &nbsp;|&nbsp;
+  <a href="{% url 'admin-storage-dashboard' %}" style="text-decoration: none; font-weight: 600;">💾 Switch to Storage Dashboard</a>
+</div>
+
+<div style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+  <form method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div>
+      <label style="font-weight: 600; font-size: 13px;">Search Keyword:</label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. GEOFENCE, unlock, todd..." style="padding: 6px 10px; border-radius: 4px; border: 1px solid #94a3b8; width: 220px;">
+    </div>
+    <div>
+      <label style="font-weight: 600; font-size: 13px;">Level:</label>
+      <select name="level" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #94a3b8;">
+        <option value="" {% if not level_filter %}selected{% endif %}>ALL LEVELS</option>
+        <option value="INFO" {% if level_filter == "INFO" %}selected{% endif %}>INFO</option>
+        <option value="WARNING" {% if level_filter == "WARNING" %}selected{% endif %}>WARNING</option>
+        <option value="ERROR" {% if level_filter == "ERROR" %}selected{% endif %}>ERROR</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-weight: 600; font-size: 13px;">Max Lines:</label>
+      <input type="number" name="limit" value="{{ line_limit }}" min="25" max="2000" style="padding: 6px 10px; width: 80px; border-radius: 4px; border: 1px solid #94a3b8;">
+    </div>
+    <button type="submit" style="background: #0284c7; color: white; border: none; padding: 7px 16px; border-radius: 5px; cursor: pointer; font-weight: 600;">
+      🔍 Filter Logs
+    </button>
+    <a href="{% url 'admin-log-viewer' %}" style="font-size: 13px; color: #475569;">Reset</a>
+  </form>
+
+  <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b;">
+    <span>Log File: <code>{{ log_file_path }}</code> (Showing {{ log_lines|length }} recent entries, newest first)</span>
+    <form method="post" onsubmit="return confirm('Clear all log entries?');">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="clear_logs">
+      <button type="submit" style="background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+        🗑️ Clear Log File
+      </button>
+    </form>
+  </div>
+</div>
+
+<div style="background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.6; max-height: 620px; overflow-y: auto;">
+  {% if log_lines %}
+    {% for line in log_lines %}
+      <div style="border-bottom: 1px solid #1e293b; padding: 3px 0; {% if 'ERROR' in line %}color: #f87171;{% elif 'WARNING' in line %}color: #fbbf24;{% elif 'GEOFENCE UNLOCK' in line %}color: #34d399; font-weight: 600;{% endif %}">
+        {{ line }}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div style="color: #94a3b8; font-style: italic;">No matching log lines found.</div>
+  {% endif %}
+</div>
+{% endblock %}

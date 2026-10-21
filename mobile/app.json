@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Locus Memories",
+    "slug": "locus-memories",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.locusmemories.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Locus uses your location so you can discover and unlock family memories anchored to physical places.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Locus uses your location to notify you when you walk near a tagged family memory.",
+        "NSMicrophoneUsageDescription": "Locus uses your microphone so you can record voice stories at tagged locations.",
+        "NSCameraUsageDescription": "Locus uses your camera so you can attach photos and videos to location tags."
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+      }
+    },
+    "android": {
+      "package": "com.locusmemories.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "RECORD_AUDIO",
+        "CAMERA"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Locus to check your proximity to family memory tags."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Locus to record audio stories for your memory tags."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Locus to attach photos to your location tags."
+        }
+      ]
+    ]
+  }
+}

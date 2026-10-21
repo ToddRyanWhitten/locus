@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="margin-bottom: 16px;">
+  <a href="{% url 'admin:index' %}" style="text-decoration: none; font-weight: 600;">← Back to Admin Home</a>
+  &nbsp;|&nbsp;
+  <a href="{% url 'admin-log-viewer' %}" style="text-decoration: none; font-weight: 600;">📜 Switch to Live Log Viewer</a>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+  <div style="background: #0f172a; color: white; padding: 18px; border-radius: 8px;">
+    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">Total System Media Storage</div>
+    <div style="font-size: 28px; font-weight: 700; color: #38bdf8; margin-top: 4px;">{{ total_system_mb }} MB</div>
+    <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">Across {{ total_media_files }} uploaded files</div>
+  </div>
+  {% for item in media_summary %}
+  <div style="background: #1e293b; color: white; padding: 18px; border-radius: 8px;">
+    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">{{ item.media_type }} Attachments</div>
+    <div style="font-size: 24px; font-weight: 700; color: #a7f3d0; margin-top: 4px;">{{ item.count }} files</div>
+    <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">{{ item.total_bytes|filesizeformat }} total</div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 style="margin-bottom: 12px;">Per-User Storage Quotas & Consumption</h2>
+<table style="width: 100%; border-collapse: collapse; background: white; color: #0f172a; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
+  <thead>
+    <tr style="background: #f1f5f9; text-align: left;">
+      <th style="padding: 12px;">User</th>
+      <th style="padding: 12px;">Display Name</th>
+      <th style="padding: 12px;">Tags Created</th>
+      <th style="padding: 12px;">Memories Unlocked</th>
+      <th style="padding: 12px;">Storage Usage</th>
+      <th style="padding: 12px;">Adjust Quota (MB)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr style="border-top: 1px solid #e2e8f0;">
+      <td style="padding: 12px; font-weight: 600;">{{ u.username }}</td>
+      <td style="padding: 12px;">{{ u.profile.display_name|default:u.username }}</td>
+      <td style="padding: 12px;">{{ u.created_tags.count }}</td>
+      <td style="padding: 12px;">{{ u.unlocked_tags.count }}</td>
+      <td style="padding: 12px;">
+        <strong>{{ u.profile.storage_used_mb }} MB</strong> / {{ u.profile.storage_quota_mb }} MB
+        ({{ u.profile.storage_usage_percent }}%)
+      </td>
+      <td style="padding: 12px;">
+        <form method="post" style="display: flex; gap: 6px; align-items: center;">
+          {% csrf_token %}
+          <input type="hidden" name="user_id" value="{{ u.id }}">
+          <input type="number" name="storage_quota_mb" value="{{ u.profile.storage_quota_mb }}" min="10" max="100000" style="width: 90px; padding: 4px 8px;">
+          <button type="submit" style="background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Save</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

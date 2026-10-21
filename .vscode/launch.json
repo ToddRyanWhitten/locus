@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🐍 Django: Run Backend API & Admin Server",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/manage.py",
+      "args": ["runserver", "0.0.0.0:8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "django": true,
+      "justMyCode": true
+    },
+    {
+      "name": "🐍 Django: Seed Demo Memories & Users",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/manage.py",
+      "args": ["seed_demo"],
+      "cwd": "${workspaceFolder}/backend",
+      "django": true
+    }
+  ]
+}

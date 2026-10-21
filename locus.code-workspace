@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "🏠 Locus Root",
+      "path": "."
+    },
+    {
+      "name": "🐍 Backend (Django API & Admin)",
+      "path": "backend"
+    },
+    {
+      "name": "🌐 Web Portal (React Creator & Group Map)",
+      "path": "web"
+    },
+    {
+      "name": "📱 Mobile App (Expo iOS & Android)",
+      "path": "mobile"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder:🐍 Backend (Django API & Admin)}/.venv/Scripts/python.exe",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true
+    }
+  }
+}
