@@ -10,8 +10,9 @@ venv/
 db.sqlite3
 media/
 staticfiles/
-logs/*.log
-!logs/.gitkeep
+backend/logs/*.log
+backend/logs/*.log.*
+!backend/logs/.gitkeep
 
 # Node / React / Expo
 node_modules/
