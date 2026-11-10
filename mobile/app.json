@@ -13,9 +13,6 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Locus uses your location to notify you when you walk near a tagged family memory.",
         "NSMicrophoneUsageDescription": "Locus uses your microphone so you can record voice stories at tagged locations.",
         "NSCameraUsageDescription": "Locus uses your camera so you can attach photos and videos to location tags."
-      },
-      "config": {
-        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
       }
     },
     "android": {
@@ -25,12 +22,7 @@
         "ACCESS_FINE_LOCATION",
         "RECORD_AUDIO",
         "CAMERA"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
-        }
-      }
+      ]
     },
     "plugins": [
       [

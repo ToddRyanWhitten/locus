@@ -12,7 +12,7 @@ When a Recorder (e.g., Dad) tags a meaningful location—like a childhood home, 
 locus/
 ├── locus.code-workspace   # Multi-root VS Code Workspace file
 ├── docker-compose.yml     # PostgreSQL + PostGIS + Django Backend stack
-├── .env.example           # Environment variable template (Google Maps keys, DB config)
+├── .env.example           # Env template for backend, web & docker (copy to .env)
 ├── .vscode/               # VS Code tasks, launch debuggers, and recommended extensions
 ├── backend/               # Python Django REST API + GeoDjango + Custom Admin Portal (Port 8000)
 │   ├── locus_backend/     # Django settings, URLs, logging, & JWT auth config
@@ -29,6 +29,25 @@ locus/
 ---
 
 ## 🚀 Quick Start (Local Development in VS Code)
+
+### 0. Environment files
+Two git-ignored env files, each created from a committed template:
+
+| File | Template | Used by |
+|---|---|---|
+| `.env` (repo root) | `.env.example` | Django backend, web portal (Vite), docker-compose |
+| `mobile/.env` | `mobile/.env.example` | Expo mobile app (Expo only reads `.env` from `mobile/`) |
+
+```powershell
+copy .env.example .env
+copy mobile\.env.example mobile\.env
+```
+
+* **`DJANGO_SECRET_KEY`** — generate one: `python -c "import secrets; print(secrets.token_urlsafe(50))"`
+* **Google Maps (optional)** — the only third-party API key. Without it the web portal uses OpenStreetMap.
+  * Web: `VITE_GOOGLE_MAPS_API_KEY` (Maps JavaScript API) plus `VITE_GOOGLE_MAPS_MAP_ID` (Map Management, or `DEMO_MAP_ID` for dev)
+  * Mobile builds: `GOOGLE_MAPS_ANDROID_API_KEY` (Maps SDK for Android) in `mobile/.env`, injected by `mobile/app.config.js`. Not needed in Expo Go.
+* **Testing on a physical phone** — set `EXPO_PUBLIC_API_BASE_URL` to `http://<your computer's LAN IP>:8000/api` and add that IP to `DJANGO_ALLOWED_HOSTS`.
 
 ### 1. Backend API & Administrative Web Portal (`backend/`)
 The backend supports **PostgreSQL + PostGIS** (via Docker) as well as a **zero-setup local mode** (SQLite + exact Haversine geodesic distance math) so you can run and debug immediately in VS Code on Windows without installing C GDAL binaries.

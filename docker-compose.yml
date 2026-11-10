@@ -26,7 +26,7 @@ services:
     container_name: locus-backend
     restart: unless-stopped
     env_file:
-      - .env.example
+      - .env
     environment:
       USE_POSTGIS: "True"
       POSTGRES_HOST: db

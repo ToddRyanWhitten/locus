@@ -109,6 +109,8 @@ export const LocusMapView: React.FC<LocusMapViewProps> = ({
   onMapClick,
 }) => {
   const googleMapsApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
+  // AdvancedMarker pins require a real Map ID; DEMO_MAP_ID is Google's dev-only fallback.
+  const googleMapsMapId = (import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || "").trim() || "DEMO_MAP_ID";
   const defaultCenter =
     tags.length > 0
       ? { lat: tags[0].latitude, lng: tags[0].longitude }
@@ -122,7 +124,7 @@ export const LocusMapView: React.FC<LocusMapViewProps> = ({
           <GoogleMap
             defaultCenter={defaultCenter}
             defaultZoom={14}
-            mapId="LOCUS_MEMORY_MAP"
+            mapId={googleMapsMapId}
             style={{ width: "100%", height: "100%" }}
             onClick={(ev) => {
               if (ev.detail.latLng) {
