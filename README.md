@@ -50,7 +50,11 @@ copy mobile\.env.example mobile\.env
 * **Testing on a physical phone** — set `EXPO_PUBLIC_API_BASE_URL` to `http://<your computer's LAN IP>:8000/api` and add that IP to `DJANGO_ALLOWED_HOSTS`.
 
 ### 1. Backend API & Administrative Web Portal (`backend/`)
-The backend supports **PostgreSQL + PostGIS** (via Docker) as well as a **zero-setup local mode** (SQLite + exact Haversine geodesic distance math) so you can run and debug immediately in VS Code on Windows without installing C GDAL binaries.
+The backend runs on **PostgreSQL + PostGIS** (GeoDjango). You need a PostGIS database and the native GDAL/GEOS libraries:
+
+* **Docker (easiest):** `docker compose up db` starts PostGIS on port 5432 using the `POSTGRES_*` values in `.env`. `docker compose up --build` also runs the backend in a container.
+* **macOS (Homebrew):** `brew install postgresql@16 postgis gdal geos`, start Postgres, then create the role/database from `.env` and run `CREATE EXTENSION postgis;` in it. If Django can't find GDAL/GEOS, set `GDAL_LIBRARY_PATH` / `GEOS_LIBRARY_PATH` in `.env`.
+* **Windows:** install PostgreSQL with the PostGIS bundle (Stack Builder) and GDAL via [OSGeo4W](https://trac.osgeo.org/osgeo4w/), or use Docker.
 
 ```powershell
 cd backend

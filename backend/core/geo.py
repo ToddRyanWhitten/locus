@@ -2,8 +2,8 @@
 Geospatial utility functions for Locus.
 
 Provides exact geodesic distance calculations (in meters) between two WGS84
-coordinates (latitude, longitude). When running with PostGIS enabled, GeoDjango
-ST_DistanceSphere / ST_DWithin can also be used directly at the database level.
+coordinates (latitude, longitude). GeoDjango's PostGIS functions
+(ST_DistanceSphere / ST_DWithin) can also be used directly at the database level.
 """
 
 import math

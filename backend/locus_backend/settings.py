@@ -1,12 +1,9 @@
 """
 Django settings for Locus Backend.
 
-Supports two database modes:
-1. Local Zero-Setup Mode (default, USE_POSTGIS=False):
-   Uses SQLite + exact Haversine geodesic distance calculation so you can run
-   immediately on Windows/macOS in VS Code without installing native C GDAL/GEOS libraries.
-2. Production / Docker Mode (USE_POSTGIS=True):
-   Uses PostgreSQL + PostGIS with GeoDjango (`django.contrib.gis`).
+Database: PostgreSQL + PostGIS via GeoDjango (`django.contrib.gis`).
+GeoDjango needs the native GDAL and GEOS libraries. If Django can't find them
+(common with Homebrew on Apple Silicon), set GDAL_LIBRARY_PATH / GEOS_LIBRARY_PATH.
 """
 
 import os
@@ -32,9 +29,14 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-USE_POSTGIS = os.getenv("USE_POSTGIS", "False").lower() in ("true", "1", "yes")
+# Optional explicit paths to the native GDAL/GEOS libraries for GeoDjango.
+if os.getenv("GDAL_LIBRARY_PATH"):
+    GDAL_LIBRARY_PATH = os.getenv("GDAL_LIBRARY_PATH")
+if os.getenv("GEOS_LIBRARY_PATH"):
+    GEOS_LIBRARY_PATH = os.getenv("GEOS_LIBRARY_PATH")
 
 INSTALLED_APPS = [
+    "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -48,9 +50,6 @@ INSTALLED_APPS = [
     # Locus core app
     "core.apps.CoreConfig",
 ]
-
-if USE_POSTGIS:
-    INSTALLED_APPS.insert(0, "django.contrib.gis")
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -84,25 +83,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "locus_backend.wsgi.application"
 ASGI_APPLICATION = "locus_backend.asgi.application"
 
-# Database Configuration
-if USE_POSTGIS:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.getenv("POSTGRES_DB", "locus"),
-            "USER": os.getenv("POSTGRES_USER", "locus_user"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "locus_password"),
-            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-            "PORT": os.getenv("POSTGRES_PORT", "5432"),
-        }
+# Database Configuration (PostgreSQL + PostGIS)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": os.getenv("POSTGRES_DB", "locus"),
+        "USER": os.getenv("POSTGRES_USER", "locus_user"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "locus_password"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

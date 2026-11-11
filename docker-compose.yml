@@ -28,7 +28,6 @@ services:
     env_file:
       - .env
     environment:
-      USE_POSTGIS: "True"
       POSTGRES_HOST: db
     ports:
       - "8000:8000"
