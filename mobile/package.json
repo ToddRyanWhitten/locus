@@ -4,24 +4,32 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "start:dev-client": "expo start --dev-client",
+    "build:ios:development": "npx eas-cli@latest build --platform ios --profile development",
+    "build:ios:preview": "npx eas-cli@latest build --platform ios --profile preview",
+    "build:android:development": "npx eas-cli@latest build --platform android --profile development",
+    "build:android:preview": "npx eas-cli@latest build --platform android --profile preview",
+    "build:all:preview": "npx eas-cli@latest build --platform all --profile preview"
   },
   "dependencies": {
-    "expo": "~51.0.28",
-    "expo-av": "~14.0.7",
-    "expo-image-picker": "~15.0.7",
-    "expo-location": "~17.0.1",
-    "expo-status-bar": "~1.12.1",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "react-native-maps": "1.14.0"
+    "expo": "~58.0.25",
+    "expo-asset": "~58.0.21",
+    "expo-audio": "~58.0.12",
+    "expo-dev-client": "~58.0.20",
+    "expo-image-picker": "~58.0.10",
+    "expo-location": "~58.0.22",
+    "expo-status-bar": "~58.0.5",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-maps": "1.29.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/react": "~18.2.45",
-    "typescript": "~5.3.3"
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
   },
   "private": true
 }

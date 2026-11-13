@@ -32,7 +32,7 @@
         }
       ],
       [
-        "expo-av",
+        "expo-audio",
         {
           "microphonePermission": "Allow Locus to record audio stories for your memory tags."
         }
@@ -43,6 +43,7 @@
           "photosPermission": "Allow Locus to attach photos to your location tags."
         }
       ]
-    ]
+    ],
+    "scheme": "locus-memories"
   }
 }

@@ -16,7 +16,13 @@ import {
 import MapView, { Circle as MapCircle, Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
-import { Audio } from "expo-av";
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioRecorder,
+} from "expo-audio";
 
 const API_BASE =
   process.env.EXPO_PUBLIC_API_BASE_URL || "http://10.0.2.2:8000/api";
@@ -75,17 +81,14 @@ export default function App() {
   const [newStory, setNewStory] = useState("");
   const [newRadius, setNewRadius] = useState("75");
   const [pickedImageUri, setPickedImageUri] = useState<string | null>(null);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [recording, setRecording] = useState(false);
   const [recordedAudioUri, setRecordedAudioUri] = useState<string | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  // Hook-managed player: expo-audio releases it automatically on unmount.
+  const player = useAudioPlayer();
 
   useEffect(() => {
     requestLocationTracker();
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -174,44 +177,36 @@ export default function App() {
     }
   };
 
-  // Field Audio Recording (expo-av)
+  // Field Audio Recording (expo-audio)
   const toggleVoiceRecording = async () => {
     if (recording) {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setRecordedAudioUri(uri);
-      setRecording(null);
+      await recorder.stop();
+      setRecordedAudioUri(recorder.uri);
+      setRecording(false);
       return;
     }
-    const perm = await Audio.requestPermissionsAsync();
+    const perm = await requestRecordingPermissionsAsync();
     if (!perm.granted) {
       Alert.alert("Permission required", "Microphone permission is needed to record audio.");
       return;
     }
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
+    await setAudioModeAsync({
+      allowsRecording: true,
+      playsInSilentMode: true,
     });
-    const { recording: newRec } = await Audio.Recording.createAsync(
-      Audio.RecordingOptionsPresets.HIGH_QUALITY
-    );
-    setRecording(newRec);
+    await recorder.prepareToRecordAsync();
+    recorder.record();
+    setRecording(true);
   };
 
   const playAudioUrl = async (url: string) => {
-    if (sound) {
-      await sound.unloadAsync();
-    }
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: url },
-      { shouldPlay: true }
-    );
-    setSound(newSound);
+    player.replace({ uri: url });
+    player.play();
   };
 
   const pickPhoto = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ["images", "videos"],
       quality: 0.85,
     });
     if (!res.canceled && res.assets.length > 0) {
