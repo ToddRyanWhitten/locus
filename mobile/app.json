@@ -44,6 +44,12 @@
         }
       ]
     ],
-    "scheme": "locus-memories"
+    "scheme": "locus-memories",
+    "extra": {
+      "eas": {
+        "projectId": "4991cf08-0176-4e44-9a08-87da4f6c8541"
+      }
+    },
+    "owner": "whittendata"
   }
 }
