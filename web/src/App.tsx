@@ -7,7 +7,7 @@ import { TagDetailPanel } from "./components/TagDetailPanel";
 
 export const App: React.FC = () => {
   const [user, setUser] = useState<UserBrief | null>(null);
-  const [usernameInput, setUsernameInput] = useState("todd");
+  const [usernameInput, setUsernameInput] = useState("dad");
   const [passwordInput, setPasswordInput] = useState("locus123");
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -179,7 +179,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => handleLogin("todd", "locus123")}
+                onClick={() => handleLogin("dad", "locus123")}
               >
                 👨‍👧 Sign in as Dad (Recorder)
               </button>
@@ -260,10 +260,10 @@ export const App: React.FC = () => {
             className="btn btn-secondary"
             style={{ fontSize: "12px", padding: "5px 10px" }}
             onClick={() =>
-              handleLogin(user.username === "todd" ? "daughter" : "todd", "locus123")
+              handleLogin(user.username === "dad" ? "daughter" : "dad", "locus123")
             }
           >
-            🔄 Switch to {user.username === "todd" ? "Daughter (Viewer)" : "Dad (Recorder)"}
+            🔄 Switch to {user.username === "dad" ? "Daughter (Viewer)" : "Dad (Recorder)"}
           </button>
           <a
             href="http://localhost:8000/admin/"

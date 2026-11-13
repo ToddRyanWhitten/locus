@@ -330,7 +330,7 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryBtn}
-            onPress={() => signIn("todd", "locus123")}
+            onPress={() => signIn("dad", "locus123")}
           >
             <Text style={styles.secondaryBtnText}>👨‍👧 Dad (Recorder)</Text>
           </TouchableOpacity>
