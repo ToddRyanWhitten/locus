@@ -42,6 +42,14 @@
         {
           "photosPermission": "Allow Locus to attach photos to your location tags."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "# WorkManager (pulled in by react-native-maps) bundles Room 2.5, which finds\n# WorkDatabase_Impl by reflection; R8 breaks that lookup and the app crashes on launch.\n-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keep class androidx.work.impl.WorkDatabase { *; }\n-keep class androidx.work.impl.WorkDatabase_Impl { *; }\n-keepnames class androidx.room.** { *; }"
+          }
+        }
       ]
     ],
     "scheme": "locus-memories",
