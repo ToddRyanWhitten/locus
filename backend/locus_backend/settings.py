@@ -9,17 +9,20 @@ GeoDjango needs the native GDAL and GEOS libraries. If Django can't find them
 import os
 from datetime import timedelta
 from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / ".env")
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "locus-dev-secret-key-change-in-production-9f8d7a6b5c4e3f2a1",
-)
-
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("true", "1", "yes")
+
+_DEV_SECRET_KEY = "locus-dev-secret-key-change-in-production-9f8d7a6b5c4e3f2a1"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or _DEV_SECRET_KEY
+if not DEBUG and SECRET_KEY == _DEV_SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is off.")
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -84,16 +88,30 @@ WSGI_APPLICATION = "locus_backend.wsgi.application"
 ASGI_APPLICATION = "locus_backend.asgi.application"
 
 # Database Configuration (PostgreSQL + PostGIS)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.getenv("POSTGRES_DB", "locus"),
-        "USER": os.getenv("POSTGRES_USER", "locus_user"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "locus_password"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+# In the cloud (Fly.io) a single DATABASE_URL is provided; locally the POSTGRES_* vars are used.
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.parse(
+            os.environ["DATABASE_URL"],
+            engine="django.contrib.gis.db.backends.postgis",
+            conn_max_age=60,
+            conn_health_checks=True,
+        )
     }
-}
+    # Safe default if a connection pooler (PgBouncer, transaction mode) is ever
+    # put in front of the database; it doesn't support server-side cursors.
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.contrib.gis.db.backends.postgis",
+            "NAME": os.getenv("POSTGRES_DB", "locus"),
+            "USER": os.getenv("POSTGRES_USER", "locus_user"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "locus_password"),
+            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -107,9 +125,28 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# On Fly.io this points at the persistent volume (e.g. /data/media).
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "media"))
+# Let Django serve uploaded media when DEBUG is off (single-server deploy with a volume).
+SERVE_MEDIA = os.getenv("DJANGO_SERVE_MEDIA", "False").lower() in ("true", "1", "yes")
+
+# Behind a TLS-terminating proxy (Fly.io): trust X-Forwarded-Proto so absolute
+# media URLs are built as https:// and secure cookies work.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -138,8 +175,8 @@ SIMPLE_JWT = {
 DEFAULT_STORAGE_QUOTA_MB = int(os.getenv("DEFAULT_STORAGE_QUOTA_MB", "500"))
 
 # Application Logging (Viewable directly in the Django Admin Portal Log Viewer)
-LOG_DIR = BASE_DIR / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = Path(os.getenv("LOG_DIR", BASE_DIR / "logs"))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE_PATH = LOG_DIR / "locus.log"
 
 LOGGING = {

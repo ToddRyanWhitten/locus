@@ -17,6 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Admin CSS/JS, served by WhiteNoise.
+RUN python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py seed_demo && python manage.py runserver 0.0.0.0:8000"]
+# Production server. Migrations run as a separate release step (see fly.toml);
+# docker-compose overrides this with migrate + seed_demo + runserver for local dev.
+CMD ["gunicorn", "locus_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "--access-logfile", "-"]

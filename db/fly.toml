@@ -1,0 +1,33 @@
+# Fly.io config for the Locus PostGIS database (a private, unmanaged Postgres).
+# Deploy from this folder:  fly deploy
+#
+# No [http_service]/[services] section on purpose: the database has NO public
+# address. The API reaches it over Fly's private network at
+#   locus-postgis.internal:5432
+# App names are global on Fly; if you rename it, update DATABASE_URL to match.
+app = "locus-postgis"
+primary_region = "iad"   # keep in the same region as the API app
+
+# Same image as docker-compose.yml, so local and cloud match.
+# Its init script creates the postgis extension in POSTGRES_DB on first boot.
+[build]
+  image = "postgis/postgis:16-3.4"
+
+[env]
+  POSTGRES_DB = "locus"
+  POSTGRES_USER = "locus_user"
+  # The volume root contains lost+found, which initdb refuses; use a subfolder.
+  PGDATA = "/var/lib/postgresql/data/pgdata"
+  # Secret (set with `fly secrets set`, never here): POSTGRES_PASSWORD
+
+[mounts]
+  source = "pg_data"
+  destination = "/var/lib/postgresql/data"
+
+# Give Postgres time to shut down cleanly on restarts/deploys (SIGINT = fast shutdown).
+kill_signal = "SIGINT"
+kill_timeout = 30
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
