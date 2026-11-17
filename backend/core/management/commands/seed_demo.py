@@ -1,6 +1,7 @@
 """
 Seeds the Locus database with:
 - Recorder / Admin account: `todd` (password: `locus123`)
+- Recorder / Admin account: `dad` (password: `locus123`) - used by the apps' quick-login buttons
 - Daughter / Viewer account: `daughter` (password: `locus123`)
 - A shared family Circle: "Family Landmarks & Childhood Memories" (Invite Code: `FAMILY26`)
 - Three sample location-anchored Tags (one already unlocked by `daughter`, two waiting to be visited & unlocked!)
@@ -20,7 +21,7 @@ from core.models import (
 
 
 class Command(BaseCommand):
-    help = "Seed Locus with demo users (todd & daughter), a shared family circle, and sample geospatial tags."
+    help = "Seed Locus with demo users (todd, dad & daughter), a shared family circle, and sample geospatial tags."
 
     def handle(self, *args, **options):
         todd, created_todd = User.objects.get_or_create(
@@ -56,7 +57,25 @@ class Command(BaseCommand):
             daughter.profile.bio = "Exploring Dad's footsteps and unlocking family memories."
             daughter.profile.save()
 
-        circle, _ = Circle.objects.get_or_create(
+        dad, created_dad = User.objects.get_or_create(
+            username="dad",
+            defaults={
+                "email": "dad@locus.local",
+                "first_name": "Dad",
+                "last_name": "(Recorder)",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+        )
+        if created_dad:
+            dad.set_password("locus123")
+            dad.save()
+            dad.profile.display_name = "Dad"
+            dad.profile.bio = "Leaving stories and photos across the places that shaped our family."
+            dad.profile.storage_quota_mb = 1000
+            dad.profile.save()
+
+        circle, _= Circle.objects.get_or_create(
             invite_code="FAMILY26",
             defaults={
                 "name": "Family Landmarks & Childhood Memories",
@@ -67,6 +86,9 @@ class Command(BaseCommand):
 
         CircleMembership.objects.get_or_create(
             circle=circle, user=todd, defaults={"role": CircleMembership.Role.ADMIN}
+        )
+        CircleMembership.objects.get_or_create(
+            circle=circle, user=dad, defaults={"role": CircleMembership.Role.ADMIN}
         )
         CircleMembership.objects.get_or_create(
             circle=circle, user=daughter, defaults={"role": CircleMembership.Role.MEMBER}
@@ -155,6 +177,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                "Locus demo data ready! Logins: 'todd' / 'locus123' (Recorder & Admin) or 'daughter' / 'locus123' (Viewer)."
+                "Locus demo data ready! Logins: 'dad' or 'todd' / 'locus123' (Recorder & Admin) or 'daughter' / 'locus123' (Viewer)."
             )
         )
