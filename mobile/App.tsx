@@ -70,6 +70,11 @@ export default function App() {
     longitude: -77.0364,
   });
 
+  const [droppedPin, setDroppedPin] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
   const [loading, setLoading] = useState(false);
@@ -376,7 +381,22 @@ export default function App() {
             longitudeDelta: 0.025,
           }}
           showsUserLocation
+          onPress={(e) => {
+            // Taps on existing markers also bubble up here on some platforms; ignore them.
+            if ((e.nativeEvent as any).action === "marker-press") return;
+            setDroppedPin(e.nativeEvent.coordinate);
+          }}
         >
+          {/* Dropped pin from the most recent map tap (replaced on each new tap) */}
+          {droppedPin && (
+            <Marker
+              coordinate={droppedPin}
+              title="Dropped Pin"
+              description={`${droppedPin.latitude.toFixed(5)}, ${droppedPin.longitude.toFixed(5)}`}
+              pinColor="#ef4444"
+            />
+          )}
+
           {/* Current User / Simulated Walker Pin */}
           <Marker
             coordinate={userCoords}
