@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Circle as MapCircle, Marker } from "react-native-maps";
+import { BlurView } from "expo-blur";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -79,10 +80,16 @@ export default function App() {
   } | null>(null);
 
   const mapRef = useRef<MapView>(null);
-  // Blurred snapshot of the map shown behind the recorder form.
+  // Blurred snapshot of the map shown behind the recorder form (Android only).
+  // On iOS, MKMapSnapshotter returns before map tiles load (a near-solid image),
+  // so iOS instead blurs the live map through a transparent modal.
   const [recorderBgUri, setRecorderBgUri] = useState<string | null>(null);
 
   const openRecorder = async () => {
+    if (Platform.OS === "ios") {
+      setShowRecorderModal(true);
+      return;
+    }
     try {
       const uri = await mapRef.current?.takeSnapshot({
         format: "jpg",
@@ -555,12 +562,12 @@ export default function App() {
       </View>
 
       {/* Field Recorder Modal */}
-      <Modal visible={showRecorderModal} animationType="slide">
-        <ImageBackground
-          source={recorderBgUri ? { uri: recorderBgUri } : undefined}
-          blurRadius={14}
-          style={styles.modalContainer}
-        >
+      <Modal
+        visible={showRecorderModal}
+        animationType="slide"
+        transparent={Platform.OS === "ios"}
+      >
+        <RecorderBackdrop snapshotUri={recorderBgUri}>
           <View style={styles.modalScrim}>
             <KeyboardAvoidingView
               style={styles.modalCenter}
@@ -641,9 +648,36 @@ export default function App() {
               </SafeAreaView>
             </KeyboardAvoidingView>
           </View>
-        </ImageBackground>
+        </RecorderBackdrop>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+// Background behind the recorder form: the live map blurred on iOS (the modal is
+// transparent there), a blurred map snapshot on Android.
+function RecorderBackdrop({
+  snapshotUri,
+  children,
+}: {
+  snapshotUri: string | null;
+  children: React.ReactNode;
+}) {
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView intensity={40} tint="dark" style={styles.modalBlur}>
+        {children}
+      </BlurView>
+    );
+  }
+  return (
+    <ImageBackground
+      source={snapshotUri ? { uri: snapshotUri } : undefined}
+      blurRadius={14}
+      style={styles.modalContainer}
+    >
+      {children}
+    </ImageBackground>
   );
 }
 
@@ -658,6 +692,9 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: "#0f172a",
+  },
+  modalBlur: {
+    flex: 1,
   },
   modalScrim: {
     flex: 1,
