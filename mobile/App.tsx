@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
+  ImageBackground,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -74,6 +77,27 @@ export default function App() {
     latitude: number;
     longitude: number;
   } | null>(null);
+
+  const mapRef = useRef<MapView>(null);
+  // Blurred snapshot of the map shown behind the recorder form.
+  const [recorderBgUri, setRecorderBgUri] = useState<string | null>(null);
+
+  const openRecorder = async () => {
+    try {
+      const uri = await mapRef.current?.takeSnapshot({
+        format: "jpg",
+        quality: 0.6,
+        result: "file",
+      });
+      setRecorderBgUri(uri ?? null);
+    } catch {
+      setRecorderBgUri(null); // fall back to the plain dark background
+    }
+    setShowRecorderModal(true);
+  };
+
+  // New tags are recorded at the dropped pin when there is one, otherwise at the user's position.
+  const tagCoords = droppedPin ?? userCoords;
 
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
@@ -234,8 +258,8 @@ export default function App() {
         body: JSON.stringify({
           title: newTitle.trim(),
           teaser_hint: newHint.trim(),
-          latitude: userCoords.latitude,
-          longitude: userCoords.longitude,
+          latitude: tagCoords.latitude,
+          longitude: tagCoords.longitude,
           unlock_radius_meters: Number(newRadius) || 75,
           visibility: "TEASER",
           story_text: newStory.trim(),
@@ -283,6 +307,7 @@ export default function App() {
       setNewStory("");
       setPickedImageUri(null);
       setRecordedAudioUri(null);
+      setDroppedPin(null);
       fetchNearbyTags(userCoords.latitude, userCoords.longitude);
     } catch (err: any) {
       Alert.alert("Error Creating Tag", err.message);
@@ -357,9 +382,9 @@ export default function App() {
         <View style={{ flexDirection: "row", gap: 8 }}>
           <TouchableOpacity
             style={styles.recordBtn}
-            onPress={() => setShowRecorderModal(true)}
+            onPress={openRecorder}
           >
-            <Text style={styles.recordBtnText}>+ Tag Here</Text>
+            <Text style={styles.recordBtnText}>+ Tag</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.logoutBtn}
@@ -373,6 +398,7 @@ export default function App() {
       {/* Native iOS / Android Google Map */}
       <View style={styles.mapWrapper}>
         <MapView
+          ref={mapRef}
           style={styles.map}
           initialRegion={{
             latitude: userCoords.latitude,
@@ -391,7 +417,7 @@ export default function App() {
           {droppedPin && (
             <Marker
               coordinate={droppedPin}
-              title="Dropped Pin"
+              title="Tag This Spot"
               description={`${droppedPin.latitude.toFixed(5)}, ${droppedPin.longitude.toFixed(5)}`}
               pinColor="#ef4444"
             />
@@ -530,77 +556,92 @@ export default function App() {
 
       {/* Field Recorder Modal */}
       <Modal visible={showRecorderModal} animationType="slide">
-        <SafeAreaView style={styles.modalContainer}>
-          <Text style={styles.tagTitle}>📍 Record New Tag at Current Location</Text>
-          <Text style={styles.distanceText}>
-            GPS: {userCoords.latitude.toFixed(5)}, {userCoords.longitude.toFixed(5)}
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Tag Title (e.g., Childhood Porch)"
-            placeholderTextColor="#64748b"
-            value={newTitle}
-            onChangeText={setNewTitle}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Teaser Hint for Viewer"
-            placeholderTextColor="#64748b"
-            value={newHint}
-            onChangeText={setNewHint}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Unlock Radius in Meters (default 75)"
-            placeholderTextColor="#64748b"
-            keyboardType="numeric"
-            value={newRadius}
-            onChangeText={setNewRadius}
-          />
-          <TextInput
-            style={[styles.input, { height: 100, textAlignVertical: "top" }]}
-            placeholder="Write the story of this place..."
-            placeholderTextColor="#64748b"
-            multiline
-            value={newStory}
-            onChangeText={setNewStory}
-          />
-
-          <View style={{ flexDirection: "row", gap: 8, marginVertical: 10 }}>
-            <TouchableOpacity style={styles.secondaryBtn} onPress={pickPhoto}>
-              <Text style={styles.secondaryBtnText}>
-                {pickedImageUri ? "📷 Photo Attached" : "📷 Attach Photo"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={toggleVoiceRecording}
+        <ImageBackground
+          source={recorderBgUri ? { uri: recorderBgUri } : undefined}
+          blurRadius={14}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalScrim}>
+            <KeyboardAvoidingView
+              style={styles.modalCenter}
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
-              <Text style={styles.secondaryBtnText}>
-                {recording
-                  ? "⏹ Stop Recording"
-                  : recordedAudioUri
-                  ? "🎙️ Voice Recorded"
-                  : "🎙️ Record Voice"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              <SafeAreaView style={styles.modalCard}>
+                <Text style={styles.tagTitle}>
+                  📍 Record New Tag at {droppedPin ? "Pinned Location" : "Current Location"}
+                </Text>
+                <Text style={styles.distanceText}>
+                  GPS: {tagCoords.latitude.toFixed(5)}, {tagCoords.longitude.toFixed(5)}
+                </Text>
 
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={handleCreateFieldTag}
-          >
-            <Text style={styles.primaryBtnText}>💾 Save Memory Tag</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.secondaryBtn, { marginTop: 10 }]}
-            onPress={() => setShowRecorderModal(false)}
-          >
-            <Text style={styles.secondaryBtnText}>Cancel</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tag Title (e.g., Childhood Porch)"
+                  placeholderTextColor="#64748b"
+                  value={newTitle}
+                  onChangeText={setNewTitle}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Teaser Hint for Viewer"
+                  placeholderTextColor="#64748b"
+                  value={newHint}
+                  onChangeText={setNewHint}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Unlock Radius in Meters (default 75)"
+                  placeholderTextColor="#64748b"
+                  keyboardType="numeric"
+                  value={newRadius}
+                  onChangeText={setNewRadius}
+                />
+                <TextInput
+                  style={[styles.input, { height: 100, textAlignVertical: "top" }]}
+                  placeholder="Write the story of this place..."
+                  placeholderTextColor="#64748b"
+                  multiline
+                  value={newStory}
+                  onChangeText={setNewStory}
+                />
+
+                <View style={{ flexDirection: "row", gap: 8, marginVertical: 10 }}>
+                  <TouchableOpacity style={styles.secondaryBtn} onPress={pickPhoto}>
+                    <Text style={styles.secondaryBtnText}>
+                      {pickedImageUri ? "📷 Photo Attached" : "📷 Attach Photo"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={toggleVoiceRecording}
+                  >
+                    <Text style={styles.secondaryBtnText}>
+                      {recording
+                        ? "⏹ Stop Recording"
+                        : recordedAudioUri
+                        ? "🎙️ Voice Recorded"
+                        : "🎙️ Record Voice"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.primaryBtn}
+                  onPress={handleCreateFieldTag}
+                >
+                  <Text style={styles.primaryBtnText}>💾 Save Memory Tag</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.secondaryBtn, { flex: 0, marginTop: 10 }]}
+                  onPress={() => setShowRecorderModal(false)}
+                >
+                  <Text style={styles.secondaryBtnText}>Cancel</Text>
+                </TouchableOpacity>
+              </SafeAreaView>
+            </KeyboardAvoidingView>
+          </View>
+        </ImageBackground>
       </Modal>
     </SafeAreaView>
   );
@@ -617,7 +658,25 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: "#0f172a",
+  },
+  modalScrim: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+  },
+  modalCenter: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 16,
+  },
+  modalCard: {
+    backgroundColor: "rgba(15, 23, 42, 0.92)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#334155",
     padding: 20,
+    width: "100%",
+    maxWidth: 480,
+    alignSelf: "center",
   },
   logo: {
     fontSize: 32,
